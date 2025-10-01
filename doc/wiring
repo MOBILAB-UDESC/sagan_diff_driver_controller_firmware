@@ -1,0 +1,73 @@
+Motor and Encoder - 1
+RED - Motor Power +
+BLK - Motor Power -
+GRN - GND encoder
+BLU - VCC encoder
+YLW - A signal (PIN 10)
+WHT - B signal (PIN 11)
+
+Motor driver - 1
+RED - VCC
+BLK - GND
+WHT - Enable (VCC)
+BRW - Current Sensor (PIN 26)
+GRN - Input A (PIN 20)
+BLU - Input B (PIN 21)
+ORN - PWM (PIN 19)
+
+////////////////////////////////
+
+Motor and Encoder - 2
+RED - Motor Power +
+BLK - Motor Power -
+GRN - GND encoder
+BLU - VCC encoder
+YLW - A signal (PIN 8)
+WHT - B signal (PIN 9)
+
+Motor driver - 2
+RED - VCC
+BLK - GND
+WHT - Enable (VCC)
+BRW - Current Sensor (NO CONECTED)
+GRN - Input A (PIN 20) (same as motor 1)
+BLU - Input B (PIN 21) (same as motor 1)
+ORN - PWM (PIN 18)
+
+////////////////////////////////
+
+Motor and Encoder - 3
+RED - Motor Power +
+BLK - Motor Power -
+GRN - GND encoder
+BLU - VCC encoder
+YLW - A signal (PIN 12)
+WHT - B signal (PIN 13)
+
+Motor driver - 3
+RED - VCC
+BLK - GND
+WHT - Enable (VCC)
+BRW - Current Sensor (PIN 27)
+GRN - Input A (PIN 14) (same as motor 1)
+BLU - Input B (PIN 15) (same as motor 1)
+ORN - PWM (PIN 17)
+
+////////////////////////////////
+
+Motor and Encoder - 4
+RED - Motor Power +
+BLK - Motor Power -
+GRN - GND encoder
+BLU - VCC encoder
+YLW - A signal (PIN 6)
+WHT - B signal (PIN 7)
+
+Motor driver - 4
+RED - VCC
+BLK - GND
+WHT - Enable (VCC)
+BRW - Current Sensor (NOT CONECTED)
+GRN - Input A (PIN 14) (same as motor 3)
+BLU - Input B (PIN 15) (same as motor 3)
+ORN - PWM (PIN 16)
