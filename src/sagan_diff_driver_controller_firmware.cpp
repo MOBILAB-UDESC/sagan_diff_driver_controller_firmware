@@ -12,6 +12,7 @@
 #include "motor_driver.hpp"
 #include "motor_speed_control.hpp"
 #include "sagan_foc_control.hpp"
+#include "sagan_movement_control.hpp"
 
 #define SPACES "                              "
 
@@ -23,40 +24,6 @@
 #define INPUT_A_WHEEL_DRIVER_PIN 21
 #define INPUT_B_WHEEL_DRIVER_PIN 20
 #define PWM_WHEEL_DRIVER_PIN 19
-
-void motor_update(float PWM_INPUT, MotorDriver Motor_select)
-{
-    float PWM_VALUE = 0.0;
-    if (PWM_INPUT >= 100 || PWM_INPUT <= -100)
-    {
-        if (PWM_INPUT > 0)
-        {
-            PWM_INPUT = 100;
-            PWM_VALUE = round(PWM_INPUT * 255 / 100);
-            Motor_select.turnOnMotor(MotorDriver::COUNTERCLOCKWISE);
-            Motor_select.setMotorOutput(PWM_VALUE);
-        }
-        else
-        {
-            PWM_INPUT = -100;
-            PWM_VALUE = round(-PWM_INPUT * 255 / 100);
-            Motor_select.turnOnMotor(MotorDriver::CLOCKWISE);
-            Motor_select.setMotorOutput(PWM_VALUE);
-        }
-    }
-    else if (PWM_INPUT > 0)
-    {
-        PWM_VALUE = round(PWM_INPUT * 255 / 100);
-        Motor_select.turnOnMotor(MotorDriver::COUNTERCLOCKWISE);
-        Motor_select.setMotorOutput(PWM_VALUE);
-    }
-    else
-    {
-        PWM_VALUE = round(-PWM_INPUT * 255 / 100);
-        Motor_select.turnOnMotor(MotorDriver::CLOCKWISE);
-        Motor_select.setMotorOutput(PWM_VALUE);
-    }
-}
 
 #define motor_data_acquisition()                                                                                 \
     for (int pwm_valor = 0; pwm_valor <= 100; pwm_valor += 20)                                                   \
@@ -152,11 +119,23 @@ static void i2c_slave_handler(i2c_inst_t *i2c, i2c_slave_event_t event) {
     }
 }
 
+QuadratureEncoder encoder_front_wheel(ENCA_PIN, 16, 30.0); // 30:1 Metal Gearmotor 37Dx68L mm 12V with 64 CPR Encoder (Helical Pinion)
+QuadratureEncoder encoder_rear_wheel(ENCA_PIN, 16, 30.0); // 30:1 Metal Gearmotor 37Dx68L mm 12V with 64 CPR Encoder (Helical Pinion)
+
+MotorDriver driver_front_wheel(ENABLE_WHEEL_DRIVER_PIN, CS_WHEEL_DRIVER_PIN, INPUT_A_WHEEL_DRIVER_PIN, INPUT_B_WHEEL_DRIVER_PIN, PWM_WHEEL_DRIVER_PIN, MotorDriver::FULLBRIDGE);
+MotorDriver driver_rearwheel(ENABLE_WHEEL_DRIVER_PIN, CS_WHEEL_DRIVER_PIN, INPUT_A_WHEEL_DRIVER_PIN, INPUT_B_WHEEL_DRIVER_PIN, PWM_WHEEL_DRIVER_PIN, MotorDriver::FULLBRIDGE);
+
+SpeedControl control_front_wheel(sampling_time, 100);
+SpeedControl control_rear_wheel(sampling_time, 100);
+
+WheelDriver front_wheel(driver_front_wheel, control_front_wheel, encoder_front_wheel);
+WheelDriver rear_wheel(driver_rearwheel, control_rear_wheel, encoder_rear_wheel);
+
 int main()
 {
     float sampling_time = 10e-3;
-    QuadratureEncoder encoder(ENCA_PIN, 16, 30.0); // 30:1 Metal Gearmotor 37Dx68L mm 12V with 64 CPR Encoder (Helical Pinion)
-
+    
+    
     stdio_init_all();
 
     // Setup i2c slave   
@@ -182,22 +161,6 @@ int main()
     float ki = 8;
     float kd = 0;
     float N = 0;
-    float targetVel = 0;
-
-    uint64_t actual_time = 0;
-    uint64_t prev_time = 0;
-
-    float wheel_current = 0;
-    float wheel_current_median = 0;
-    float wheel_velocity = 0;
-
-    MotorDriver wheel_driver(ENABLE_WHEEL_DRIVER_PIN, CS_WHEEL_DRIVER_PIN, INPUT_A_WHEEL_DRIVER_PIN, INPUT_B_WHEEL_DRIVER_PIN, PWM_WHEEL_DRIVER_PIN, MotorDriver::FULLBRIDGE);
-    SpeedControl MotorA(kp, ki, kd, N, sampling_time, 100);
-
-    //Initializing Code
-    wheel_driver.turnOnMotor(MotorDriver::BRAKETOGND);
-    wheel_driver.setMotorOutput(0);
-    motor_update(0, wheel_driver);
 
     sleep_ms(1000);
     printf("Initializing code...\n");
@@ -211,35 +174,34 @@ int main()
     printf("Finalized \n");
     sleep_ms(1000);
 
-    while (true)
-{
-    // 1. Update Sensor Readings
-    actual_time = time_us_64();
-    float dt = (float)(actual_time - prev_time) / 1000000.0f;
-    encoder.update(dt);
-    prev_time = actual_time;
+    while (true) {
+        // 1. Update Sensor Readings
+        actual_time = time_us_64();
+        float dt = (float)(actual_time - prev_time) / 1000000.0f;
+        encoder.update(dt);
+        prev_time = actual_time;
 
-    float actual_velocity = encoder.get_velocity();
-    float motor_current = -0.1525 + wheel_driver.checkMotorCurrentDraw() * 11370.0 / 1500.0;
+        float actual_velocity = encoder.get_velocity();
+        float motor_current = -0.1525 + wheel_driver.checkMotorCurrentDraw() * 11370.0 / 1500.0;
 
-    // 2. Update the shared data structure for the master
-    // Convert floats to scaled integers for transmission
-    sensor_data_to_master.velocity1 = (int16_t)(actual_velocity * DATA_SCALE_FACTOR);
-    sensor_data_to_master.current1 = (int16_t)(motor_current * 1000.0f); // Send as mA
-    // sensor_data_to_master.velocity2 = ... // Update for motor 2
-    // sensor_data_to_master.current2 = ... // Update for motor 2
+        // 2. Update the shared data structure for the master
+        // Convert floats to scaled integers for transmission
+        sensor_data_to_master.velocity1 = (int16_t)(actual_velocity * DATA_SCALE_FACTOR);
+        sensor_data_to_master.current1 = (int16_t)(motor_current * 1000.0f); // Send as mA
+        // sensor_data_to_master.velocity2 = ... // Update for motor 2
+        // sensor_data_to_master.current2 = ... // Update for motor 2
 
-    // 3. Run the Control Logic
-    // Use the target velocity set by the master via I2C
-    float pwm_output = MotorA.controlCalcPI(target_velocity_1, actual_velocity);
+        // 3. Run the Control Logic
+        // Use the target velocity set by the master via I2C
+        float pwm_output = MotorA.controlCalcPI(target_velocity_1, actual_velocity);
 
-    // 4. Update the Motor
-    motor_update(pwm_output, wheel_driver);
+        // 4. Update the Motor
+        motor_update(pwm_output, wheel_driver);
 
-    // 5. Loop Delay
-    // Ensure a consistent loop rate for your PID controller
-    sleep_ms(10); // e.g., for a 100 Hz control loop
-}  
+        // 5. Loop Delay
+        // Ensure a consistent loop rate for your PID controller
+        sleep_ms(10); // e.g., for a 100 Hz control loop
+    }  
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
