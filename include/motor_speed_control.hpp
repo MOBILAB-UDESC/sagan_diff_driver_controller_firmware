@@ -10,6 +10,10 @@ class SpeedControl
 
     SpeedControl(float kp, float ki, float kd, float N, float sampling_time, int saturation);
 
+    SpeedControl(float kp, float ki, float sampling_time, int saturation);
+
+    SpeedControl(float sampling_time, int saturation);
+
     float controlCalcPI(float targetVel, float actualVel);
 
     float controlCalcPD(float targetPos, float actualPos);

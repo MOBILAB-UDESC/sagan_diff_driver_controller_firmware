@@ -1,6 +1,9 @@
 #include "sagan_movement_control.hpp"
 
-WheelDriver::WheelDriver(MotorDriver motor, SpeedControl controller, QuadratureEncoder encoder) {
+WheelDriver::WheelDriver(MotorDriver motor_param, SpeedControl controller_param, QuadratureEncoder encoder_param)
+  : motor(motor_param),
+    controller(controller_param),
+    encoder(encoder_param) {
     this->motor = motor;
     this->controller = controller;
     this->encoder = encoder;
@@ -14,18 +17,18 @@ float WheelDriver::get_velocity() {
     return this->actual_velocity; 
 }
 
-void motor_loop() {
+void WheelDriver::motor_loop() {
     actual_time = time_us_64();
     float dt = (float)(actual_time - prev_time) / 1000000.0f;
     this->encoder.update(dt);
     prev_time = actual_time;
     this->update_velocity();
-    float control_effort = controller.controlCalcRagazzini(this->target_velocity, this->actual_velocity)
+    float control_effort = controller.controlCalcRagazzini(this->target_velocity, this->actual_velocity);
     this->motor_set_input(control_effort);
 }
 
 float WheelDriver::get_current() {
-    float motor_current = -0.1525 + wheel_driver.checkMotorCurrentDraw() * 11370.0 / 1500.0;
+    float motor_current = -0.1525 + motor.checkMotorCurrentDraw() * 11370.0 / 1500.0;
     return motor_current;
 }
 

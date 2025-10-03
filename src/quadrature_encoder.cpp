@@ -4,13 +4,13 @@ QuadratureEncoder::QuadratureEncoder(uint8_t pin, float ppr, float gear_ratio) :
 {
     pio_instance = pio0;
     sm = 0;
-    // pio_instance = pio0;
-    // sm = pio_claim_unused_sm(pio_instance, true);
-    // if (sm == -1)
-    //     pio_instance = pio1;
-    // sm = pio_claim_unused_sm(pio_instance, true);
-    // if (sm == -1)
-    //     throw std::runtime_error("No free state machine found!");
+    pio_instance = pio0;
+    sm = pio_claim_unused_sm(pio_instance, true);
+    if (sm == -1)
+        pio_instance = pio1;
+    sm = pio_claim_unused_sm(pio_instance, true);
+    if (sm == -1)
+        throw std::runtime_error("No free state machine found!");
     pio_add_program(pio_instance, &quadrature_encoder_program);
     quadrature_encoder_program_init(pio_instance, sm, pin, 0);
 }

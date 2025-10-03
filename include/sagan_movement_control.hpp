@@ -16,6 +16,8 @@ public:
     float get_velocity();
 
     float get_current();
+
+    void motor_loop();
 private:
 
     void motor_set_input(float PWM_INPUT);

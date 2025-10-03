@@ -1,0 +1,37 @@
+Motor and Encoder -  Front
+RED - Motor Power +
+BLK - Motor Power -
+GRN - GND encoder
+BLU - VCC encoder
+YLW - A signal (PIN 14)
+WHT - B signal (PIN 15)
+
+Motor driver - 1
+RED - VCC
+BLK - GND
+WHT - Enable (PIN 21)
+BRW - Current Sensor (PIN 26)
+GRN - Input A (PIN 7)
+BLU - Input B (PIN 6)
+ORN - PWM (PIN 8)
+
+////////////////////////////////
+
+Motor and Encoder - Rear
+RED - Motor Power +
+BLK - Motor Power -
+GRN - GND encoder
+BLU - VCC encoder
+YLW - A signal (PIN 16)
+WHT - B signal (PIN 17)
+
+Motor driver - 2
+RED - VCC
+BLK - GND
+WHT - Enable (PIN 20)
+BRW - Current Sensor (PIN 27)
+GRN - Input A (PIN 11) 
+BLU - Input B (PIN 10) 
+ORN - PWM (PIN 12)
+
+

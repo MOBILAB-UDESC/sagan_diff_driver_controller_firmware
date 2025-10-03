@@ -57,10 +57,42 @@ target_link_libraries(saganfoccontrol
     magenclib
 )
 
+add_library(saganmovementcontrol
+    sagan_movement_control.cpp
+)
+
+target_link_libraries(saganmovementcontrol
+    motordriver
+    speedcontrol
+    quadratureencoder
+    pico_stdlib 
+)
+
+target_include_directories(saganmovementcontrol
+    PUBLIC 
+        ${CMAKE_CURRENT_SOURCE_DIR}/../include
+)
+
+add_library(quadratureencoder
+    quadrature_encoder.cpp
+)
+
+pico_generate_pio_header(quadratureencoder 
+    ${CMAKE_CURRENT_LIST_DIR}/quadrature_encoder.pio
+)
+
+target_link_libraries(quadratureencoder
+    hardware_pio
+)
+
+target_include_directories(quadratureencoder
+    PUBLIC 
+        ${CMAKE_CURRENT_SOURCE_DIR}/../include
+)
+
 # Add executable. Default name is the project name, version 0.1
 
 add_executable(sagan_diff_driver_controller_firmware 
-    quadrature_encoder.cpp
     sagan_diff_driver_controller_firmware.cpp 
 )
 
@@ -68,9 +100,7 @@ pico_set_program_name(sagan_diff_driver_controller_firmware "sagan_diff_driver_c
 pico_set_program_version(sagan_diff_driver_controller_firmware "0.1")
 
 # Generate PIO header
-pico_generate_pio_header(sagan_diff_driver_controller_firmware 
-    ${CMAKE_CURRENT_LIST_DIR}/quadrature_encoder.pio
-)
+
 
 # Modify the below lines to enable/disable output over UART/USB
 pico_enable_stdio_uart(sagan_diff_driver_controller_firmware 0)
@@ -86,6 +116,8 @@ target_include_directories(sagan_diff_driver_controller_firmware
 
 # Add any user requested libraries
 target_link_libraries(sagan_diff_driver_controller_firmware 
+    quadratureencoder
+    saganmovementcontrol
     magenclib
     motordriver
     speedcontrol
@@ -94,7 +126,6 @@ target_link_libraries(sagan_diff_driver_controller_firmware
     pico_multicore
     pico_i2c_slave
     hardware_i2c
-    hardware_pio
     hardware_timer
     hardware_clocks
 )
